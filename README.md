@@ -480,3 +480,4 @@ of this software and associated documentation files...
 [⬆ Voltar ao topo](#️-safeguard-ai)
 
 </div>
+# SafeGuard PPE AI
