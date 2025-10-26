@@ -1,0 +1,128 @@
+# ============================================
+# PPE Detection System - .gitignore
+# ============================================
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ===== Jupyter Notebook =====
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+*-checkpoint.ipynb
+
+# ===== PyTorch / Models =====
+*.pth
+*.pt
+*.onnx
+*.tflite
+*.mlmodel
+*.torchscript
+runs/
+weights/
+checkpoints/
+
+# ===== Datasets =====
+data/
+datasets/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Exceto exemplos
+!examples/*.jpg
+!examples/*.jpeg
+!examples/*.png
+
+# ===== Training Results =====
+results/
+logs/
+tensorboard/
+wandb/
+*.log
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== OS =====
+Thumbs.db
+desktop.ini
+*.lnk
+
+# ===== Google Colab =====
+*.colab
+.config/
+
+# ===== Temporary =====
+temp/
+tmp/
+*.tmp
+*.bak
+*.backup
+
+# ===== Environment Variables =====
+.env
+.env.local
+*.env
+
+# ===== Cache =====
+.cache/
+*.cache
+
+# ===== Documentation =====
+docs/_build/
+site/
+
+# ===== Testing =====
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# ===== Secrets / Keys =====
+*.key
+*.pem
+*_key.json
+secrets/
+credentials/
+
+# ===== Large Files =====
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# ===== Specific to this project =====
+# Manter apenas o notebook principal
+# PPE_Detection_*.ipynb
+# !PPE_Detection.ipynb
+
+

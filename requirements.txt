@@ -1,0 +1,54 @@
+# ============================================
+# PPE Detection System - Dependencies
+# Visao Segura - Safe Guard AI
+# ============================================
+
+# Core Deep Learning
+ultralytics>=8.0.196
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Computer Vision
+opencv-python>=4.8.0
+pillow>=10.0.0
+
+# Data Science & Numeric
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Web Interface
+gradio>=4.8.0
+
+# Dataset Management
+roboflow>=1.0.0
+
+# Visualization & Monitoring
+supervision>=0.16.0
+tqdm>=4.65.0
+
+# Data Augmentation
+albumentations>=1.3.0
+
+# Utilities
+pyyaml>=6.0
+requests>=2.31.0
+ipython>=8.12.0
+pathlib>=1.0.1
+
+# Optional - Export Formats
+# Descomente se precisar exportar para outros formatos
+# onnx>=1.14.0
+# onnxruntime>=1.15.0
+# tensorflow>=2.13.0  # Para TFLite export
+# coremltools>=7.0    # Para CoreML export (apenas macOS)
+
+# Development (opcional)
+# jupyter>=1.0.0
+# notebook>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0
+# pytest>=7.4.0
+
+
