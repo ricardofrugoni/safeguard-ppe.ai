@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
+  <title id="title">Anotações de referência — espaço reservado</title>
+  <desc id="desc">Marcador de posição para uma imagem futura. Nenhuma amostra ou predição real é exibida.</desc>
+  <rect x="1" y="1" width="718" height="418" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="28" y="26" width="48" height="32" rx="8" fill="#e0f2f1"/>
+  <text x="52" y="48" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#0f766e">02</text>
+  <text x="690" y="47" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="13" letter-spacing="1.5" fill="#64748b">AMOSTRA A INCLUIR</text>
+  <g fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="313" y="107" width="94" height="74" rx="10"/>
+    <circle cx="341" cy="130" r="7"/>
+    <path d="M314 167l25-23 20 17 18-20 29 30"/>
+  </g>
+  <text x="360" y="232" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="600" fill="#0f172a">Anotações de referência</text>
+  <text x="360" y="269" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">Caixas e classes anotadas no dataset</text>
+  <path d="M280 309h160" stroke="#cbd5e1"/>
+  <text x="360" y="352" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#64748b">SafeGuard PPE AI · Documentação de experimentos</text>
+</svg>

@@ -57,6 +57,12 @@ datasets/
 !examples/*.jpeg
 !examples/*.png
 
+# Imagens selecionadas para a documentação
+!docs/images/*.jpg
+!docs/images/*.jpeg
+!docs/images/*.png
+!docs/images/*.webp
+
 # ===== Training Results =====
 results/
 logs/
