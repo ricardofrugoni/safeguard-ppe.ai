@@ -1,483 +1,270 @@
-<div align="center">
+# SafeGuard PPE AI
 
-# 🛡️ SafeGuard AI
+**Detecção de capacetes, cabeças e pessoas com visão computacional.**
 
-### Sistema Inteligente de Detecção de EPIs com Visão Computacional
+Projeto experimental de aprendizado de máquina para apoiar a análise visual do uso de equipamentos de proteção individual. O fluxo atual reúne preparação de dados, treinamento de um detector YOLOv8n, avaliação e uma interface Gradio para analisar imagens.
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
-[![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00ADD8.svg)](https://github.com/ultralytics/ultralytics)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-MVP-yellow.svg)]()
+[Modelo e dados](#modelo-e-dados) · [Galeria](#galeria-de-treinamento-e-resultados) · [Resultados](#resultados-registrados) · [Instalação](#instalação) · [Execução](#execução-local) · [Roadmap](#roadmap)
 
-**Monitoramento automatizado em tempo real para segurança do trabalho**
+## Estado do projeto
 
-[Demonstração](#-demonstração) • [Funcionalidades](#-funcionalidades) • [Instalação](#-instalação) • [Documentação](#-documentação)
+O repositório está na fase de protótipo. Os recursos abaixo estão presentes no código:
 
-</div>
+| Recurso | Implementação atual |
+| --- | --- |
+| Preparação do dataset | Download pelo Roboflow e criação de uma divisão de validação quando ela está vazia. |
+| Treinamento | Ajuste de pesos pré-treinados do YOLOv8n para as classes do dataset. |
+| Avaliação | mAP50, mAP50–95, precisão e recall no conjunto de validação. |
+| Inferência em imagens | Caixas delimitadoras, classes, confiança e contagem de detecções por classe. |
+| Demonstração | Upload de imagem no Gradio, ajuste de confiança e visualização das predições. |
 
----
+Integração com câmeras, rastreamento de pessoas, zonas de risco, notificações e aplicativo móvel são possibilidades de evolução. O fluxo atual trabalha com imagens individuais e ainda não constitui um sistema de monitoramento em produção.
 
-## 📑 Índice
+## Modelo e dados
 
-- [Visão Geral](#-visão-geral)
-- [Problema e Solução](#-problema-e-solução)
-- [Funcionalidades](#-funcionalidades)
-- [Tecnologias](#-tecnologias)
-- [Métricas de Performance](#-métricas-de-performance)
-- [Aplicações Futuras](#-aplicações-futuras)
-- [Roadmap](#-roadmap)
-- [Casos de Uso](#-casos-de-uso)
-- [Instalação](#-instalação)
-- [Segurança e Privacidade](#-segurança-e-privacidade)
-- [Contribuindo](#-contribuindo)
-- [Licença](#-licença)
+### Qual modelo usamos?
 
----
+O projeto utiliza **YOLOv8n**, a variante nano da família YOLOv8 da Ultralytics, com **PyTorch**. Trata-se de aprendizado profundo supervisionado para detecção de objetos: o modelo aprende com imagens anotadas a localizar objetos e atribuir uma classe a cada caixa.
 
-## 🎯 Visão Geral
+O treinamento parte de `yolov8n.pt`, com pesos pré-treinados no COCO, e os ajusta ao dataset do projeto por transferência de aprendizado. O arquivo `best.pt` gerado pelo treinamento contém os pesos ajustados. As classes do detector dependem dos pesos carregados; o `yolov8n.pt` original não equivale ao modelo treinado para este projeto. Consulte a [documentação oficial do YOLOv8](https://docs.ultralytics.com/models/yolov8/).
 
-O **SafeGuard AI** é um sistema de visão computacional baseado em **YOLOv8** que utiliza inteligência artificial para monitorar automaticamente o uso correto de Equipamentos de Proteção Individual (EPIs) em ambientes industriais e de construção civil.
+### Dataset e classes
 
-### 🚨 Problema e Solução
+O código utiliza o [Hard Hat Workers, versão 2, no Roboflow Universe](https://universe.roboflow.com/joseph-nelson/hard-hat-workers/dataset/2), exportado no formato YOLOv8.
 
-| **Problema** | **Solução SafeGuard AI** |
-|--------------|--------------------------|
-| Acidentes causados por falta de EPIs | Detecção automática em tempo real |
-| Fiscalização manual ineficiente | Monitoramento 24/7 sem intervenção humana |
-| Falta de registro visual de não conformidades | Captura automática de evidências |
-| Comunicação lenta entre observador e TST | Alertas instantâneos via app mobile |
-| Dificuldade em cobrir grandes áreas | Integração com múltiplas câmeras e drones |
+| Classe | Interpretação no dataset |
+| --- | --- |
+| `head` | Cabeça. |
+| `helmet` | Capacete. |
+| `person` | Pessoa. |
 
----
+O experimento registrado em [Visao_segura.ipynb](Visao_segura.ipynb) usou **4.216 imagens de treino** e **1.053 de validação**, após separar parte das imagens de treino. A implementação atual seleciona os primeiros arquivos retornados pela listagem para essa separação, sem embaralhamento explícito ou estratificação. Essa limitação deve ser revista em novos experimentos.
 
-## ✨ Funcionalidades
+A detecção de uma cabeça ou de um capacete, isoladamente, não determina o uso correto do EPI. Essa conclusão requer regras de associação entre objetos e validação no contexto de aplicação. Máscaras, coletes e outros EPIs não fazem parte das três classes deste treinamento.
 
-### 🔍 Detecção Automática
+## Galeria de treinamento e resultados
 
-O sistema identifica em tempo real:
+Espaço reservado para documentar visualmente os experimentos. **Os quadros abaixo são marcadores de posição; nenhuma amostra real foi adicionada ainda.**
 
-| EPI | Status | Prioridade |
-|-----|--------|-----------|
-| Capacete (hardhat) | Obrigatório em áreas de risco | 🔴 Alta |
-| Máscara facial (mask) | Proteção respiratória | 🔴 Alta |
-| Colete de segurança | Alta visibilidade | 🟡 Média |
-| Ausência de EPIs | Detecção de não conformidade | 🔴 Crítica |
-| Pessoas | Contagem e rastreamento | 🔵 Informativa |
-| Veículos/Maquinário | Contexto da área | 🔵 Informativa |
+| Imagem do dataset | Anotações de referência |
+| :---: | :---: |
+| ![Espaço reservado para uma imagem original do dataset](docs/images/dataset-original.svg) | ![Espaço reservado para uma imagem com as anotações de referência](docs/images/dataset-anotado.svg) |
+| Exemplo de cena usada no treinamento. | A mesma cena com as caixas e classes anotadas. |
 
-### 🗺️ Sistema de Zonas Inteligentes
+| Lote de treinamento | Predição em validação |
+| :---: | :---: |
+| ![Espaço reservado para um lote de imagens de treinamento](docs/images/lote-treinamento.svg) | ![Espaço reservado para o resultado do modelo em uma imagem de validação](docs/images/resultado-inferencia.svg) |
+| Visualização de um lote e das transformações aplicadas. | Imagem de validação com as predições do modelo. |
 
-```
-┌─────────────────────────────────────────────────┐
-│              MAPEAMENTO DE ZONAS                │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  🔴 ZONA VERMELHA (Áreas de Risco)              │
-│     ├─ Canteiro de obras                        │
-│     ├─ Áreas de máquinas pesadas                │
-│     ├─ Zonas de altura                          │
-│     ├─ Locais com produtos químicos             │
-│     └─ EPIs OBRIGATÓRIOS → Alerta imediato      │
-│                                                 │
-│  🟢 ZONA VERDE (Áreas Seguras)                  │
-│     ├─ Refeitórios                              │
-│     ├─ Vestiários                               │
-│     ├─ Salas de descanso                        │
-│     ├─ Escritórios                              │
-│     └─ EPIs OPCIONAIS → Sem alertas             │
-│                                                 │
-└─────────────────────────────────────────────────┘
-```
+Para preencher a galeria, adicione os arquivos em [`docs/images/`](docs/images/README.md) e substitua os caminhos `.svg` acima pelos arquivos correspondentes. O diretório aceita imagens JPG, JPEG, PNG e WebP no Git. Registre na legenda a origem, o conjunto (treino ou validação), o experimento e, para predições, o limiar de confiança. As instruções e os nomes sugeridos estão no [guia da galeria](docs/images/README.md).
 
-### 📢 Sistema de Alertas em Cascata
+## Resultados registrados
 
-**Fluxo do Alerta:**
-1. Captura automática de foto/vídeo
-2. Registro de data, hora e localização GPS
-3. Notificação push instantânea ao app do TST
-4. Armazenamento criptografado da evidência
-5. Geração automática de relatório de ocorrência
+Os valores abaixo foram extraídos da **saída de validação salva no notebook**, em uma execução anterior no Google Colab. Eles não representam uma nova medição no ambiente local nem uma avaliação independente em produção.
 
----
+| Condição do experimento | Valor registrado |
+| --- | --- |
+| Modelo | YOLOv8n ajustado para 3 classes |
+| Treinamento | 20 épocas, `imgsz=640`, lote de 64 |
+| Hardware | NVIDIA A100-SXM4 com 40 GB |
+| Ambiente | Python 3.12.12, PyTorch 2.8.0+cu126, Ultralytics 8.3.213 |
+| Validação | 1.053 imagens e 4.136 instâncias anotadas |
 
-## 🛠️ Tecnologias
+| Métrica de validação | Resultado |
+| --- | ---: |
+| mAP50 | 65,2% |
+| mAP50–95 | 45,5% |
+| Precisão média | 96,1% |
+| Recall médio | 61,5% |
 
-<div align="center">
+**Resultados por classe:**
 
-| Tecnologia | Versão | Função |
-|-----------|--------|---------|
-| **YOLOv8n** | Latest | Modelo de detecção de objetos |
-| **Python** | 3.12+ | Linguagem principal |
-| **PyTorch** | 2.0+ | Framework de deep learning |
-| **OpenCV** | 4.8+ | Processamento de imagem |
-| **Gradio** | Latest | Interface web interativa |
-| **Ultralytics** | Latest | Biblioteca de treinamento |
+| Classe | Instâncias | Precisão | Recall | mAP50 |
+| --- | ---: | ---: | ---: | ---: |
+| `head` | 995 | 93,2% | 91,5% | 95,3% |
+| `helmet` | 3.048 | 95,3% | 93,0% | 97,7% |
+| `person` | 93 | 100,0% | 0,0% | 2,75% |
 
-</div>
+A classe `person` apresentou recall zero nessa avaliação. O valor de precisão exibido para ela deve ser interpretado junto desse resultado e do mAP muito baixo; ele não demonstra boa capacidade de detectar pessoas. Melhorar a avaliação dessa classe é uma prioridade. Também não há um benchmark reproduzível de FPS da aplicação completa documentado no repositório.
 
----
+## Instalação
 
-## 📈 Métricas de Performance
+Use **Python 3.12** como referência para o ambiente local. As dependências estão em [requirements.txt](requirements.txt); o arquivo usa intervalos de versões, portanto instalações feitas em momentos diferentes podem produzir ambientes distintos.
 
-### Modelo Treinado com 4.216 Imagens
-
-<div align="center">
-
-| Métrica | Valor | Status | Interpretação |
-|---------|-------|--------|---------------|
-| **mAP50** | 62% | 🟡 Bom | Precisão geral aceitável |
-| **Precision** | 85-95% | 🟢 Excelente | Alta confiabilidade nas detecções |
-| **Recall** | 55-65% | 🟡 Bom | Captura maioria dos casos |
-| **FPS** | 30+ | 🟢 Excelente | Processamento em tempo real (GPU) |
-
-</div>
-
-### Desempenho por Classe
-
-```
-Capacete (hardhat)        ████████████████████ 85%
-Pessoa (person)           ████████████████░░░░ 80%
-Colete (safety-vest)      ███████████████░░░░░ 75%
-Máscara (mask)            █████████████░░░░░░░ 65%
-Sem capacete (no-hardhat) ████████████░░░░░░░░ 60%
+```bash
+git clone https://github.com/ricardofrugoni/safeguard-ppe.ai.git
+cd safeguard-ppe.ai
+python -m venv .venv
 ```
 
----
+Ative o ambiente no Windows / PowerShell:
 
-## 🚀 Aplicações Futuras
-
-### Integração com Câmeras IP Existentes
-
-**Implementação:**
-- Conexão com infraestrutura de CFTV existente
-- Processamento distribuído (15-30 FPS por câmera)
-- Suporte para centenas de câmeras simultâneas
-
-**Benefícios:**
-- Zero investimento em hardware adicional
-- Monitoramento contínuo 24/7
-- Escalabilidade horizontal
-
-### Sistema com Drones Autônomos
-
-**Recursos:**
-- Rotas de inspeção pré-programadas
-- Processamento embarcado (edge computing)
-- Detecção em áreas de difícil acesso
-
-**Aplicações:**
-- Inspeção de telhados e estruturas elevadas
-- Monitoramento de torres e andaimes
-- Áreas remotas e de risco
-
-### Aplicativo Mobile para TST
-
-```
-┌───────────────────────────────────────┐
-│       SafeGuard TST App               │
-├───────────────────────────────────────┤
-│                                       │
-│  🔴 ALERTAS ATIVOS (3)                |
-│                                       │
-│  ┌─────────────────────────────────┐  │
-│  │ Setor B - Andaime 3             │  │
-│  │ Trabalhador sem capacete        │  │
-│  │ 14:32 - Hoje                    │  │
-│  │ [VER] [REGISTRAR]               │  │
-│  └─────────────────────────────────┘  │
-│                                       │
-│  ┌─────────────────────────────────┐  │
-│  │ Área de Solda                   │  │
-│  │ Sem máscara respiratória        │  │
-│  │ 14:15 - Hoje                    │  │
-│  │ [VER] [REGISTRAR]               │  │
-│  └─────────────────────────────────┘  │
-│                                       │
-│  ───────────────────────────────────  │
-│  Relatórios | Histórico               │
-│  Configurações | Notificações         │
-└───────────────────────────────────────┘
+```powershell
+.\.venv\Scripts\Activate.ps1
 ```
 
-**Funcionalidades:**
-- Notificações push em tempo real
-- Visualização de evidências (foto/vídeo)
-- Registro imediato de ações corretivas
-- Geolocalização precisa dos incidentes
-- Dashboard com KPIs e estatísticas
-- Exportação de relatórios (PDF/Excel)
+Ou no Linux / macOS:
 
-### Georreferenciamento de Zonas
+```bash
+source .venv/bin/activate
+```
 
-**Configuração de Áreas:**
+Instale as dependências:
 
-| Zona | Tipo | EPIs Obrigatórios | Ação |
-|------|------|-------------------|------|
-| Refeitório | 🟢 Verde | Nenhum | Nenhuma |
-| Vestiário | 🟢 Verde | Nenhum | Nenhuma |
-| Área de Construção | 🔴 Vermelha | Capacete + Colete | Alerta |
-| Área de Solda | 🔴 Vermelha | Capacete + Máscara + Colete | Alerta |
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-**Funcionalidades:**
-- Mapeamento em planta baixa da obra
-- Configuração de EPIs por zona
-- Definição de horários de risco
-- Gerenciamento de exceções temporárias
+Para executar o notebook, instale também `ipykernel` e selecione o Python da `.venv` como kernel no editor:
 
-### Integração Corporativa
+```bash
+python -m pip install ipykernel
+```
 
-**APIs e Conectores:**
+O treinamento pode ser executado em CPU. Para usar uma GPU NVIDIA, siga o [seletor oficial de instalação do PyTorch](https://pytorch.org/get-started/locally/) e verifique a disponibilidade de CUDA no mesmo ambiente usado pelo notebook:
+
+```bash
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
+```
+
+## Execução local
+
+### Configuração e treinamento
+
+Os valores padrão de [src/config.py](src/config.py) ainda refletem o experimento no Colab: caminhos em `/content`, `device=0`, lote de 64 e cache em RAM. Para executar localmente, forneça uma configuração adequada ao computador.
+
+O exemplo abaixo usa diretórios dentro do projeto, seleciona CPU quando CUDA está indisponível e utiliza lotes menores. Salve-o como `executar_local.py` na raiz do repositório. Esse arquivo é um exemplo a criar, não um script já incluído.
 
 ```python
-# Exemplo de integração via API REST
-POST /api/v1/alert
-{
-  "timestamp": "2025-10-13T14:32:15Z",
-  "location": "Setor B - Andaime 3",
-  "violation_type": "no_hardhat",
-  "employee_id": "optional",
-  "evidence_url": "https://...",
-  "severity": "high"
-}
+import os
+from pathlib import Path
+
+import torch
+
+from src.app import PPEDetectionApp
+from src.config import AppConfig
+
+
+def main():
+    root = Path(__file__).resolve().parent
+    config = AppConfig()
+    config.save_dir = str(root / "runs")
+    config.dataset.base_path = str(root / "datasets" / "ppe")
+    config.dataset.augmented_path = str(root / "datasets" / "ppe_augmented")
+    config.dataset.api_key = os.environ.get("ROBOFLOW_API_KEY", "")
+    config.model.device = 0 if torch.cuda.is_available() else "cpu"
+    config.model.batch_size = 8 if torch.cuda.is_available() else 4
+    config.model.workers = 0
+    config.model.cache = False
+
+    if not config.dataset.train_images_path.exists() and not config.dataset.api_key:
+        raise RuntimeError("Defina ROBOFLOW_API_KEY para baixar o dataset.")
+
+    app = PPEDetectionApp(config)
+    app.setup_dataset()
+    app.train_model()
+    app.load_trained_model()
+    app.validate_model()
+    print(f"Pesos salvos em: {config.best_model_path}")
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-**Integrações Disponíveis:**
-- ERP/SAP (Registro automático de não conformidades)
-- Sistemas de RH (Vinculação a perfil do colaborador)
-- Controle de Acesso (Bloqueio preventivo de entrada)
-- E-mail/SMS (Notificações para hierarquia)
-- BI/Analytics (Dashboards executivos)
+Se o dataset ainda não estiver disponível no caminho configurado, defina sua chave Roboflow antes de executar. **A leitura dessa variável é feita pelo exemplo acima; os scripts originais não a carregam automaticamente.**
 
----
-
-## 🗓️ Roadmap
-
-### Fase 1 - MVP (Atual)
-- [x] Detecção básica de 5 classes de EPIs
-- [x] Interface Gradio para demonstração
-- [x] Modelo YOLOv8n treinado (mAP50: 62%)
-- [x] Documentação técnica inicial
-
-### Fase 2 - Produção (Q1-Q2 2026)
-- [ ] Integração com câmeras IP (RTSP/HTTP)
-- [ ] App mobile iOS/Android (React Native)
-- [ ] Sistema de zonas georreferenciadas
-- [ ] Dashboard web de monitoramento
-- [ ] API REST v1 para integrações
-- [ ] Deploy em cloud (AWS/Azure/GCP)
-
-### Fase 3 - Expansão (Q3-Q4 2026)
-- [ ] Suporte a drones autônomos (DJI SDK)
-- [ ] Reconhecimento facial de trabalhadores
-- [ ] Análise preditiva de padrões de risco
-- [ ] Integração com ERP (SAP/Oracle)
-- [ ] Conformidade NR-12, NR-18, NR-35
-- [ ] Relatórios automatizados (ISO 45001)
-
-### Fase 4 - IA Avançada (2027+)
-- [ ] Detecção de comportamentos de risco
-- [ ] Análise ergonômica de postura
-- [ ] Contagem de pessoas em tempo real
-- [ ] Detecção de fadiga/sonolência
-- [ ] Sistema de gamificação para conformidade
-- [ ] Predição de acidentes com ML
-
----
-
-## 💼 Casos de Uso
-
-### Construção Civil
-- Fiscalização de capacetes em andaimes de altura
-- Monitoramento de coletes em vias de circulação
-- Controle de acesso a áreas restritas (escavações)
-- Conformidade NR-18
-
-### Indústria
-- Verificação de máscaras N95 em áreas químicas
-- Controle de EPIs em linhas de montagem
-- Auditoria automatizada (ISO 45001, ISO 14001)
-- Prevenção de multas e processos trabalhistas
-
-### Mineração
-- Monitoramento via drones em áreas remotas
-- Detecção em ambientes subterrâneos
-- Registro contínuo para compliance legal
-- Conformidade NR-22
-
-### Logística e Armazéns
-- Controle de coletes em zonas de empilhadeiras
-- Monitoramento de docas de carga/descarga
-- Segurança em centros de distribuição
-- Redução de acidentes com empilhadeiras
-
----
-
-## 🔧 Instalação
-
-### Pré-requisitos
+```powershell
+# Windows / PowerShell
+$env:ROBOFLOW_API_KEY = "SUA_CHAVE_ROBOFLOW"
+python executar_local.py
+```
 
 ```bash
-Python 3.12+
-CUDA 11.8+ (para GPU)
-4GB+ RAM (8GB recomendado)
+# Linux / macOS
+export ROBOFLOW_API_KEY="SUA_CHAVE_ROBOFLOW"
+python executar_local.py
 ```
 
-### Instalação Rápida
+Se você já baixou o dataset em outro local, ajuste `config.dataset.base_path` para reaproveitá-lo. O exemplo salva os pesos em `runs/ppe_model/weights/best.pt`. O arquivo inicial `yolov8n.pt` pode ser baixado automaticamente pela Ultralytics; os pesos ajustados e o dataset não são distribuídos pelo Git.
+
+### Demonstração com pesos treinados
+
+Depois do treinamento, execute o trecho abaixo na raiz do projeto, em um script ou notebook. Ele carrega o `best.pt` produzido pelo exemplo anterior e abre o Gradio sem solicitar um link público:
+
+```python
+from src.app import PPEDetectionApp
+from src.config import AppConfig
+
+config = AppConfig(save_dir="runs")
+config.dataset.base_path = "datasets/ppe"
+app = PPEDetectionApp(config)
+app.load_trained_model("runs/ppe_model/weights/best.pt")
+app.launch_interface(share=False)
+```
+
+Acesse `http://localhost:7860`, carregue uma imagem e ajuste o limiar de confiança. A interface retorna a imagem anotada e as estatísticas por classe. Por padrão, o servidor usa `0.0.0.0`; `share=False` desativa o túnel público do Gradio, mas não restringe o servidor ao endereço de loopback.
+
+### Scripts existentes e notebook
+
+| Entrada | Comportamento |
+| --- | --- |
+| `python train.py` | Prepara o dataset, treina e valida usando os padrões de `AppConfig`. |
+| `python demo.py` | Carrega o modelo no caminho padrão e abre o Gradio com `share=True`. |
+| `python main.py --no-ui` | Executa preparação, treinamento, validação e uma inferência de exemplo. |
+| `python main.py --skip-training --no-ui` | Prepara o dataset, carrega os pesos existentes e avalia. |
+| `python main.py --validate-only --model-path CAMINHO/best.pt` | Avalia os pesos indicados usando o dataset configurado. |
+| [Visao_segura.ipynb](Visao_segura.ipynb) | Fluxo interativo de instalação, preparação, treinamento, avaliação e demonstração. |
+
+Antes de usar esses scripts diretamente, ajuste `AppConfig` em `src/config.py`, incluindo os caminhos, o dispositivo e a credencial de download. No notebook, essas configurações são definidas nas próprias células. As saídas antigas do Colab não indicam que o treinamento foi executado na sessão atual.
+
+**Limitações atuais da CLI:** `--config` e `--no-share` são aceitos pelo parser de `main.py`, mas ainda não são aplicados ao fluxo. `--model-path` é utilizado no modo `--validate-only`. Para configurar a execução e o compartilhamento de forma explícita, use os exemplos Python acima.
+
+## Estrutura do repositório
+
+```text
+.
+├── Visao_segura.ipynb       # Experimento e saídas registradas
+├── main.py                 # Entrada do fluxo completo
+├── train.py                # Treinamento e validação
+├── demo.py                 # Demonstração Gradio
+├── requirements.txt        # Dependências
+├── src/
+│   ├── app.py              # Orquestração do fluxo
+│   ├── config.py           # Configurações
+│   ├── dataset_manager.py  # Download e divisão do dataset
+│   ├── detector.py         # Treinamento, inferência e avaliação
+│   ├── gradio_interface.py # Interface de imagens
+│   └── visualizer.py       # Anotações e resumos visuais
+├── tests/                  # Testes de configuração e resultados
+└── docs/images/            # Galeria e instruções para incluir imagens
+```
+
+## Desenvolvimento
+
+Os testes existentes cobrem configurações e estruturas de resultados. Eles não substituem a avaliação do detector em imagens reais.
 
 ```bash
-# Clone o repositório
-git clone https://github.com/ricardofrugoni/safeguard_ai_epi.git
-cd safeguard_ai_epi
-
-# Crie ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
-
-# Instale dependências
-pip install -r requirements.txt
-
-# Execute a aplicação
-python app.py
+python -m pip install pytest
+python -m pytest tests/
 ```
 
-### Usando Docker
+Para contribuir, descreva o problema, mantenha as alterações focadas e registre a validação realizada no pull request. Novos resultados de treinamento devem incluir a versão do dataset, a divisão dos dados, os parâmetros, o ambiente e as métricas por classe. Inclua exemplos de falhas junto dos acertos na galeria.
 
-```bash
-docker build -t safeguard-ai .
-docker run -p 7860:7860 safeguard-ai
-```
+## Roadmap
 
-Acesse: `http://localhost:7860`
+- [ ] Padronizar a configuração entre notebook e scripts e concluir as opções da CLI.
+- [ ] Remover credenciais fixas do código e centralizar a configuração de download.
+- [ ] Tornar a divisão de dados reproduzível e documentar uma avaliação em conjunto de teste separado.
+- [ ] Investigar o baixo desempenho de `person` e ampliar a análise de erros.
+- [ ] Publicar amostras anotadas, predições e curvas dos experimentos na galeria.
+- [ ] Medir latência e uso de memória no hardware de destino.
+- [ ] Avaliar a inclusão de novos EPIs, processamento de vídeo e câmeras.
+- [ ] Projetar regras de associação, zonas de risco e alertas após validar o detector.
 
----
+## Licença e autoria
 
-## 📊 Exemplo de Notificação
+O repositório contém uma [licença MIT](LICENSE) para o código do projeto. Bibliotecas, pesos e datasets têm seus próprios termos de uso; consulte também a [documentação de licenciamento da Ultralytics](https://docs.ultralytics.com/models/yolov8/#citations-and-acknowledgments) e a página do dataset.
 
-```
-┌─────────────────────────────────────────┐
-│  SafeGuard AI - ALERTA DE SEGURANÇA     │
-├─────────────────────────────────────────┤
-│                                         │
-│  🔴 TRABALHADOR SEM CAPACETE            │
-│                                         │
-│  Local: Setor B - Andaime 3 (3º andar)  │
-│  Hora: 14:32:15                         │
-│  Data: 13/10/2025                       │
-│  Temperatura: 28°C                      │
-│                                         │
-│  Identificação: Em andamento...         │
-│  Evidência: Foto capturada (2.3MB)      │
-│  Confiança: 92%                         │
-│                                         │
-│  ┌───────────────────────────────────┐  │
-│  │  [VER IMAGEM]  [REGISTRAR]        │  │
-│  │  [LIGAR TST]   [IGNORAR]          │  │
-│  └───────────────────────────────────┘  │
-│                                         │
-│  Alerta #1847 | Prioridade: ALTA 🔴    │
-└─────────────────────────────────────────┘
-```
-
----
-
-## 🔐 Segurança e Privacidade
-
-### Conformidade LGPD (Lei Geral de Proteção de Dados)
-
-| Requisito | Implementação |
-|-----------|---------------|
-| **Processamento Local** | Imagens processadas on-premise (sem envio para nuvem externa) |
-| **Anonimização** | Dados pessoais automaticamente anonimizados |
-| **Criptografia** | AES-256 para armazenamento, TLS 1.3 para transmissão |
-| **Retenção Limitada** | Evidências mantidas por 30-90 dias (configurável) |
-| **Controle de Acesso** | RBAC (Role-Based Access Control) com autenticação 2FA |
-| **Auditoria** | Logs imutáveis de todos os acessos |
-
-### Princípios Éticos
-
-- Trabalhadores informados sobre monitoramento (transparência)
-- Sinalização visível de áreas monitoradas
-- Uso exclusivo para segurança (não punição)
-- Foco em prevenção, não penalização
-- Direito de contestação de alertas
-- Anonimização em relatórios agregados
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são muito bem-vindas! Veja como participar:
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
-
-### Diretrizes de Contribuição
-
-- Siga o [PEP 8](https://pep8.org/) para código Python
-- Adicione testes para novas funcionalidades
-- Atualize a documentação quando necessário
-- Mantenha commits pequenos e descritivos
-
----
-
-## 🏆 Reconhecimentos
-
-- Dataset: [Roboflow Universe - Hard Hat Workers Dataset](https://universe.roboflow.com/)
-- Modelo Base: [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
-- Comunidade Open-Source por ferramentas e bibliotecas
-- Profissionais de Segurança do Trabalho por feedback valioso
-
----
-
-## 📞 Contato e Suporte
-
-<div align="center">
-
-### 👨‍💻 Desenvolvedor
-
-**Ricardo Frugoni**
-
-🌐 Website: [www.codex.ai](https://www.codex.ai)  
-📱 WhatsApp: +55 21 97355-4927  
-📧 Email: contato@codex.ai
-
-</div>
-
----
-
-## 📄 Licença
-
-Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-```
-MIT License
-
-Copyright (c) 2025 Visão Segura - Safe Guard AI
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files...
-```
-
----
-
-<div align="center">
-
-### 🛡️ SafeGuard AI
-**Protegendo vidas através da inteligência artificial**
-
-[![GitHub Stars](https://img.shields.io/github/stars/ricardofrugoni/safeguard_ai_epi?style=social)](https://github.com/ricardofrugoni/safeguard_ai_epi)
-[![GitHub Forks](https://img.shields.io/github/forks/ricardofrugoni/safeguard_ai_epi?style=social)](https://github.com/ricardofrugoni/safeguard_ai_epi)
-
----
-
-**Desenvolvido por Ricardo Frugoni**
-
-[⬆ Voltar ao topo](#️-safeguard-ai)
-
-</div>
-# SafeGuard PPE AI
+Desenvolvido por **Ricardo Frugoni**. Sugestões e relatos de problemas podem ser registrados nas [issues do repositório](https://github.com/ricardofrugoni/safeguard-ppe.ai/issues).
