@@ -36,7 +36,7 @@ class DatasetConfig:
     validation_split: float = 0.2
     min_validation_samples: int = 10
 
-    api_key: str = "tSGbJRy40ipX4Xo7rYhw"
+    
     workspace: str = "joseph-nelson"
     project_name: str = "hard-hat-workers"
     version: int = 2
